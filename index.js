@@ -28,6 +28,7 @@ async function run() {
 
         const instructorsCollection = client.db('MindFulness').collection('allInstructors')
         const classCollection = client.db('MindFulness').collection('allClasses')
+        const selectedCollection = client.db('MindFulness').collection('selectedClasses')
         const userCollection = client.db('MindFulness').collection('users')
 
         //instructor api
@@ -40,6 +41,17 @@ async function run() {
         app.post('/all-classes', async (req, res) => {
             const classes = req.body
             const result = await classCollection.insertOne(classes)
+            res.send(result)
+        })
+        app.post('/selected-class', async(req, res)=>{
+            const selectedClass = req.body;
+            const result = await selectedCollection.insertOne(selectedClass)
+            res.send(result)
+        })
+        app.get('/selected-classes', async(req, res)=>{
+            const email = req.query.email;
+            const query = {studentEmail : email}
+            const result = await selectedCollection.find(query).toArray()
             res.send(result)
         })
         app.get('/all-classes', async (req, res) => {
@@ -107,6 +119,18 @@ async function run() {
         })
         app.get('/all-users', async (req, res) => {
             const result = await userCollection.find().toArray()
+            res.send(result)
+        })
+        app.put('/all-users/:id', async(req, res)=>{
+            const id = req.params.id;
+            const role = req.query.role;
+            const query = {_id : new ObjectId(id)}
+            const updatedDoc ={
+                $set : {
+                    role : role
+                }
+            }
+            const result = await userCollection.updateOne(query, updatedDoc)
             res.send(result)
         })
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
