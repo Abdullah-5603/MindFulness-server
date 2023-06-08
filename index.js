@@ -1,11 +1,15 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
+const EventEmitter = require('events');
+const bus = new EventEmitter();
+const stripe = require('stripe')
 const cors = require('cors');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 3000
 
 app.use(cors())
+app.use(express.static("public"))
 app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jjaqgwq.mongodb.net/?retryWrites=true&w=majority`;
@@ -28,8 +32,10 @@ async function run() {
 
         const instructorsCollection = client.db('MindFulness').collection('allInstructors')
         const classCollection = client.db('MindFulness').collection('allClasses')
-        const selectedCollection = client.db('MindFulness').collection('selectedClasses')
+        const selectedClassCollection = client.db('MindFulness').collection('selectedClasses')
+        const enrolledClassCollection = client.db('MindFulness').collection('enrolledClasses')
         const userCollection = client.db('MindFulness').collection('users')
+        const paymentCollection = client.db('MindFulness').collection('payment')
 
         //instructor api
         app.get('/instructors', async (req, res) => {
@@ -43,15 +49,27 @@ async function run() {
             const result = await classCollection.insertOne(classes)
             res.send(result)
         })
-        app.post('/selected-class', async(req, res)=>{
+        app.post('/selected-class', async (req, res) => {
             const selectedClass = req.body;
-            const result = await selectedCollection.insertOne(selectedClass)
+            const result = await selectedClassCollection.insertOne(selectedClass)
             res.send(result)
         })
-        app.get('/selected-classes', async(req, res)=>{
+        app.get('/selected-classes', async (req, res) => {
             const email = req.query.email;
-            const query = {studentEmail : email}
-            const result = await selectedCollection.find(query).toArray()
+            const query = { studentEmail: email }
+            const result = await selectedClassCollection.find(query).toArray()
+            res.send(result)
+        })
+        app.get('/selected-class/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await selectedClassCollection.findOne(query)
+            res.send(result)
+        })
+        app.delete('/selected-classes/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await selectedClassCollection.deleteOne(query)
             res.send(result)
         })
         app.get('/all-classes', async (req, res) => {
@@ -89,10 +107,10 @@ async function run() {
                 res.send(result)
             }
             if (feedback) {
-                const query = {_id : new ObjectId(id)}
+                const query = { _id: new ObjectId(id) }
                 const updatedDoc = {
-                    $set:{
-                        feedback : feedback
+                    $set: {
+                        feedback: feedback
                     }
                 }
                 const result = await classCollection.updateOne(query, updatedDoc)
@@ -111,6 +129,25 @@ async function run() {
             const result = await userCollection.insertOne(user)
             res.send(result)
         })
+        app.get('/user/admin/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = {email : email, role : 'admin'}
+            console.log(email)
+            const admin = await userCollection.findOne(query)
+            res.send(admin)
+        })
+        app.get('/user/instructor/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = {email : email, role : 'instructor'}
+            const instructor = await userCollection.findOne(query)
+            res.send(instructor)
+        })
+        app.get('/user/student/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = {email : email, role : 'student'}
+            const student = await userCollection.findOne(query)
+            res.send(student)
+        })
         app.get('/current-user', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
@@ -121,18 +158,77 @@ async function run() {
             const result = await userCollection.find().toArray()
             res.send(result)
         })
-        app.put('/all-users/:id', async(req, res)=>{
+        app.put('/all-users/:id', async (req, res) => {
             const id = req.params.id;
             const role = req.query.role;
-            const query = {_id : new ObjectId(id)}
-            const updatedDoc ={
-                $set : {
-                    role : role
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    role: role
                 }
             }
             const result = await userCollection.updateOne(query, updatedDoc)
             res.send(result)
         })
+
+        //payment api
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const amount = Math.round(price * 100);
+            const stripeClient = stripe(process.env.STRIPE_KEY);
+            try {
+                // Create a PaymentIntent with the order amount and currency
+                const paymentIntent = await stripeClient.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    automatic_payment_methods: {
+                        enabled: true,
+                    },
+                });
+
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+            } catch (error) {
+                console.log(error);
+                res.status(500).send({ error: "An error occurred while creating the PaymentIntent." });
+            }
+        });
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+
+            const enrolledQuery = { studentEmail: payment.email, classId: payment.classId }
+            const enrolledClass =  await selectedClassCollection.findOne(enrolledQuery)
+            const enrolledInsertResult = await enrolledClassCollection.insertOne(enrolledClass)
+
+            const enrolledDeleteResult = await selectedClassCollection.deleteOne(enrolledQuery)
+
+            const classQuery = { _id: new ObjectId(payment.classId) };
+            const classDocument = await classCollection.findOne(classQuery); // Fetch the latest document
+
+            if (classDocument && classDocument.seats > 0) {
+                const updatedSeats = classDocument.seats - 1; // Calculate the updated seats value
+                const updateResult = await classCollection.updateOne(
+                    classQuery,
+                    { $set: { seats: updatedSeats } }
+                );
+
+                res.send({ insertResult, updateResult, enrolledDeleteResult, enrolledInsertResult });
+            }
+        });
+        app.get('/enrolled-classes', async(req, res)=>{
+            const result = await enrolledClassCollection.find().toArray()
+            res.send(result)
+        })
+        app.get('/payment-history', async (req, res) => {
+            const email = req.query.email;
+            const query = {email : email}
+            const result = await paymentCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } catch (error) {
         console.log(error.message)
