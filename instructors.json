@@ -1,44 +1,39 @@
 [
-  {
-      "name": "B.K.S. Iyengar",
-      "email": "bks.iyengar@example.com",
-      "instructorImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_-jI6L_AasnXMrgtstcbxLiuVdwMNp6cJNg&usqp=CAU",
-      "classImage": "https://www.iyengaryogagenova.it/Content/resources/images/BKS-Iyengar-e-la-scuola-di-yoga.jpg",
-      "role": "instructor"
-  },
-  {
-      "name": "Kino MacGregor",
-      "email": "kino.macgregor@example.com",
-      "instructorImage": "https://www.wellandgood.com/wp-content/uploads/2014/11/Kino-MacGregor-3.jpg",
-      "classImage": "https://www.supersoul.yoga/media/archive/pages/382/kinomcgregoryoga-22.jpg",
-      "role": "instructor"
-  },
-  {
-      "name": "Baron Baptiste",
-      "email": "baron.baptiste@example.com",
-      "instructorImage": "https://magarticles.magzter.com/articles/6166/260093/5a71a7a486bee/Meet-Your-Next-Teacher-Baron-Baptiste.jpg",
-      "classImage": "https://i.ytimg.com/vi/nHf-_nczPK8/maxresdefault.jpg",
-      "role": "instructor"
-  },
-  {
-      "name": "Shiva Rea",
-      "email": "shiva.rea@example.com",
-      "instructorImage": "https://www.yogadownload.com/Portals/0/ProductImages/Instructors/Shiva-Rea.jpg",
-      "classImage": "https://www.organicauthority.com/.image/t_share/MTU5MzI5NjUzNjUzMTg1NzUw/shiva-rae-yoga-teacher.jpg",
-      "role": "instructor"
-  },
-  {
-      "name": "Rodney Yee",
-      "email": "rodney.yee@example.com",
-      "instructorImage": "https://libraryitems.insighttimer.com/w8t7k6w3g0h8l2z5q7h2m7b5d9k3f7v1z5g7r1s8/pictures/tiny_rectangle_large.jpeg",
-      "classImage": "https://reinventiongirl.com/wp-content/uploads/2011/09/TamYoga.jpg",
-      "role": "instructor"
-  },
-  {
-      "name": "Seane Corn",
-      "email": "seane.corn@example.com",
-      "instructorImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB4BJMUUXgZqTkm7_ABicUReQhZiV1ZUxgOg&usqp=CAU",
-      "classImage": "https://moonlitmoth.files.wordpress.com/2013/04/399933_10150562887297702_246437652701_9030630_810673205_n.jpg",
-      "role": "instructor"
-  }
-]
+    {
+      "image": "https://i.ibb.co/sQSvYWS/Zen-Flow.webp",
+      "className": "Zen Flow",
+      "seats": 15,
+      "price": 20
+    },
+    {
+      "image": "https://i.ibb.co/B6n3nND/Power-Ignite.webp",
+      "className": "Power Ignite",
+      "seats": 10,
+      "price": 25
+    },
+    {
+      "image": "https://i.ibb.co/YNmnTLw/Blissful-Balance.jpg",
+      "className": "Blissful Balance",
+      "seats": 12,
+      "price": 30
+    },
+    {
+      "image": "https://i.ibb.co/wNg8TF3/Yoga-Nidra-Journey.jpg",
+      "className": "Yoga Nidra Journey",
+      "seats": 8,
+      "price": 18
+    },
+    {
+      "image": "https://i.ibb.co/zHbmmw9/Rise-and-Shine-Yoga.webp",
+      "className": "Rise and Shine Yoga",
+      "seats": 20,
+      "price": 22
+    },
+    {
+      "image": "https://i.ibb.co/HqFnHK2/Yoga-Sculpt-Fusion.jpg",
+      "className": "Yoga Sculpt Fusion",
+      "seats": 15,
+      "price": 28
+    }
+  ]
+  
