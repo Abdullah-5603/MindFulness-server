@@ -1,6 +1,6 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const stripe = require('stripe')
 const cors = require('cors');
 require('dotenv').config()
@@ -11,22 +11,22 @@ app.use(cors())
 app.use(express.static("public"))
 app.use(express.json())
 
-const verifyJWT = (req, res, next) => {
-    const authorization = req.headers.authorization;
-    if (!authorization) {
-      return res.status(401).send({ error: true, message: 'Unauthorize Access' })
-    }
-    const token = authorization.split(' ')[1];
+// const verifyJWT = (req, res, next) => {
+//     const authorization = req.headers.authorization;
+//     if (!authorization) {
+//       return res.status(401).send({ error: true, message: 'Unauthorize Access' })
+//     }
+//     const token = authorization.split(' ')[1];
   
-    jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
-      if (error) {
-        console.log(error)
-        return res.send({ error: true, message: 'Unauthorize Access' })
-      }
-      req.decoded = decoded;
-      next()
-    })
-  }
+//     jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+//       if (error) {
+//         console.log(error)
+//         return res.send({ error: true, message: 'Unauthorize Access' })
+//       }
+//       req.decoded = decoded;
+//       next()
+//     })
+//   }
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jjaqgwq.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -53,11 +53,11 @@ async function run() {
         const paymentCollection = client.db('MindFulness').collection('payment')
         const arrivingClassCollection = client.db('MindFulness').collection('arrivingClasses')
 
-        app.post('/jwt', (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '10h' })
-            res.send({ token })
-          })
+        // app.post('/jwt', (req, res) => {
+        //     const user = req.body;
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '10h' })
+        //     res.send({ token })
+        //   })
 
         //classes api
         app.get('/arriving-classes', async(req,res)=>{
@@ -74,13 +74,13 @@ async function run() {
             const result = await selectedClassCollection.insertOne(selectedClass)
             res.send(result)
         })
-        app.get('/selected-classes', verifyJWT, async (req, res) => {
+        app.get('/selected-classes', async (req, res) => {
             const email = req.query.email;
             const query = { studentEmail: email }
             const result = await selectedClassCollection.find(query).toArray()
             res.send(result)
         })
-        app.get('/selected-class/:id', verifyJWT, async (req, res) => {
+        app.get('/selected-class/:id',  async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await selectedClassCollection.findOne(query)
@@ -92,22 +92,22 @@ async function run() {
             const result = await selectedClassCollection.deleteOne(query)
             res.send(result)
         })
-        app.get('/approved-all-classes', verifyJWT, async (req, res) => {
+        app.get('/approved-all-classes', async (req, res) => {
             const query = {status : 'Approved'} //only shows the approved classes
             const result = await classCollection.find(query).toArray()
             res.send(result)
         })
-        app.get('/all-classes', async (req, res) => {
+        app.get('/all-classes',  async (req, res) => {
             const result = await classCollection.find().toArray()
             res.send(result)
         })
-        app.get('/all-classes', verifyJWT, async (req, res) => {
+        app.get('/all-classes', async (req, res) => {
             const email = req.query.email;
             const query = { instructorEmail: email }
             const result = await classCollection.find(query).toArray()
             res.send(result)
         })
-        app.put('/all-classes/:id', verifyJWT, async (req, res) => {
+        app.put('/all-classes/:id',  async (req, res) => {
             const id = req.params.id;
             const status = req.query.status;
             const feedback = req.query.feedback;
@@ -142,12 +142,12 @@ async function run() {
                 res.send(result)
             }
         })
-        app.get('/popular-classes', verifyJWT, async(req, res)=>{
+        app.get('/popular-classes', async(req, res)=>{
             const query = {status : 'Approved'}
             const result = await classCollection.find(query).sort({enrolledStudents : -1}).toArray()
             res.send(result)
         })
-        app.get('/enrolled-classes', verifyJWT, async(req, res)=>{
+        app.get('/enrolled-classes', async(req, res)=>{
             const result = await enrolledClassCollection.find().toArray()
             res.send(result)
         })
@@ -163,25 +163,25 @@ async function run() {
             const result = await userCollection.insertOne(user)
             res.send(result)
         })
-        app.get('/user/admin/:email', verifyJWT, async(req, res)=>{
+        app.get('/user/admin/:email', async(req, res)=>{
             const email = req.params.email;
             const query = {email : email, role : 'admin'}
             const admin = await userCollection.findOne(query)
             res.send(admin)
         })
-        app.get('/user/instructor/:email', verifyJWT, async(req, res)=>{
+        app.get('/user/instructor/:email', async(req, res)=>{
             const email = req.params.email;
             const query = {email : email, role : 'instructor'}
             const instructor = await userCollection.findOne(query)
             res.send(instructor)
         })
-        app.get('/user/student/:email', verifyJWT, async(req, res)=>{
+        app.get('/user/student/:email', async(req, res)=>{
             const email = req.params.email;
             const query = {email : email, role : 'student'}
             const student = await userCollection.findOne(query)
             res.send(student)
         })
-        app.get('/current-user', verifyJWT, async (req, res) => {
+        app.get('/current-user', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const result = await userCollection.findOne(query)
@@ -196,7 +196,7 @@ async function run() {
             const result = await userCollection.find(query).toArray()
             res.send(result)
         })
-        app.put('/all-users/:id', verifyJWT, async (req, res) => {
+        app.put('/all-users/:id',  async (req, res) => {
             const id = req.params.id;
             const role = req.query.role;
             const query = { _id: new ObjectId(id) }
@@ -260,7 +260,7 @@ async function run() {
                 res.send({ insertResult, updateResult, enrolledDeleteResult, enrolledInsertResult });
             }
         });
-        app.get('/payment-history', verifyJWT, async (req, res) => {
+        app.get('/payment-history', async (req, res) => {
             const email = req.query.email;
             const query = {email : email}
             const result = await paymentCollection.find(query).sort({date : -1}).toArray()
