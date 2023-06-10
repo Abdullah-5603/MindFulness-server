@@ -101,8 +101,8 @@ async function run() {
             const result = await classCollection.find().sort({date : -1}).toArray()
             res.send(result)
         })
-        app.get('/all-classes', async (req, res) => {
-            const email = req.query.email;
+        app.get('/all-classes/:email', async (req, res) => {
+            const email = req.params.email;
             const query = { instructorEmail: email }
             const result = await classCollection.find(query).toArray()
             res.send(result)
@@ -147,8 +147,10 @@ async function run() {
             const result = await classCollection.find(query).sort({enrolledStudents : -1}).toArray()
             res.send(result)
         })
-        app.get('/enrolled-classes', async(req, res)=>{
-            const result = await enrolledClassCollection.find().toArray()
+        app.get('/enrolled-classes/:email', async(req, res)=>{
+            const email = req.params.email
+            const query = {studentEmail : email}
+            const result = await enrolledClassCollection.find(query).toArray()
             res.send(result)
         })
 
