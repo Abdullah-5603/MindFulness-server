@@ -98,7 +98,7 @@ async function run() {
             res.send(result)
         })
         app.get('/all-classes',  async (req, res) => {
-            const result = await classCollection.find().toArray()
+            const result = await classCollection.find().sort({date : -1}).toArray()
             res.send(result)
         })
         app.get('/all-classes', async (req, res) => {
